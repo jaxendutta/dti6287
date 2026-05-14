@@ -1,11 +1,10 @@
 [project]
 name = "bi"
 version = "0.1.0"
-description = "DTI6287:  Business Intelligence Technologies & Big Data Analytics"
+description = "DTI6287: Business Intelligence Technologies & Big Data Analytics"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "kaggle>=1.6.17",
     "pyspark>=3.5.0",
     "pandas>=2.2.0",
     "pyarrow>=18.0.0",
@@ -22,3 +21,6 @@ dev = ["ruff>=0.8.0"]
 
 [tool.uv]
 package = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
