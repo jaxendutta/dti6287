@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT          = Path(__file__).parent
+# src/bi/config.py → go up two levels to reach project root
+ROOT          = Path(__file__).parent.parent.parent
 DATA_DIR      = ROOT / "data"
 OUTPUT_DIR    = ROOT / "output"
 NOTEBOOKS_DIR = ROOT / "notebooks"
@@ -29,6 +30,9 @@ DOWNLOAD_ZIP        = DATA_DIR / "carrier-on-time-performance-dataset.zip"
 RAW_CSV             = DATA_DIR / "airline_2m.csv"
 CLEANED_PARQUET     = OUTPUT_DIR / "airline_cleaned.parquet"
 SPARK_PARQUET       = OUTPUT_DIR / "airline_cleaned_spark"
+
+# BTS data contains Latin-1 encoded characters in some city/airport name fields
+CSV_ENCODING = "latin-1"
 
 # ── Spark ─────────────────────────────────────────────────────────────────────
 SPARK_APP_NAME           = "AirlineOnTime-Analytics"
@@ -71,6 +75,7 @@ MIN_CARRIER_FLIGHTS =  5_000
 # ── Plotting ──────────────────────────────────────────────────────────────────
 FIGURE_DPI    = 150
 FIGURE_SIZE   = (12, 5)
+
 COLOR_PRIMARY = "steelblue"
 COLOR_DELAY   = "tomato"
 COLOR_GOOD    = "mediumseagreen"
@@ -86,5 +91,5 @@ MONTH_TO_SEASON = {
      9: 4, 10: 4, 11: 4,
 }
 
-DOW_LABELS    = {1:"Mon", 2:"Tue", 3:"Wed", 4:"Thu", 5:"Fri", 6:"Sat", 7:"Sun"}
-MONTH_LABELS  = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+DOW_LABELS   = {1:"Mon", 2:"Tue", 3:"Wed", 4:"Thu", 5:"Fri", 6:"Sat", 7:"Sun"}
+MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]

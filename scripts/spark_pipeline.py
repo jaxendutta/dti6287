@@ -5,18 +5,10 @@ a partitioned Parquet file ready for analysis and ML modeling.
 
 USAGE:
     uv run python scripts/spark_pipeline.py
-
-OUTPUT:
-    output/airline_cleaned_spark/   partitioned Parquet (by Year)
-    output/summary_stats/           null report CSV
 """
 
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import (
-    RAW_CSV, SPARK_PARQUET, OUTPUT_DIR,
+from bi.config import (
+    RAW_CSV, SPARK_PARQUET, OUTPUT_DIR, CSV_ENCODING,
     SPARK_APP_NAME, SPARK_DRIVER_MEMORY, SPARK_SHUFFLE_PARTITIONS,
     DROP_COLS, CORE_COLS, INT_COLS, DOUBLE_COLS,
     DELAY_MIN_MINUTES, DELAY_MAX_MINUTES,
@@ -44,6 +36,7 @@ def load(spark: SparkSession) -> DataFrame:
         .option("header", "true")
         .option("inferSchema", "false")
         .option("nullValue", "")
+        .option("encoding", CSV_ENCODING)
         .csv(str(RAW_CSV))
     )
     print(f"  Raw shape: {df.count():,} rows × {len(df.columns)} columns")
@@ -51,8 +44,7 @@ def load(spark: SparkSession) -> DataFrame:
 
 
 def drop_columns(df: DataFrame) -> DataFrame:
-    to_drop = [c for c in DROP_COLS if c in df.columns]
-    return df.drop(*to_drop)
+    return df.drop(*[c for c in DROP_COLS if c in df.columns])
 
 
 def cast_types(df: DataFrame) -> DataFrame:
@@ -68,7 +60,6 @@ def cast_types(df: DataFrame) -> DataFrame:
 def clean(df: DataFrame) -> DataFrame:
     before = df.count()
     df = df.dropna(subset=[c for c in CORE_COLS if c in df.columns])
-
     df = df.filter(
         F.col("ArrDelay").isNull() |
         F.col("ArrDelay").between(DELAY_MIN_MINUTES, DELAY_MAX_MINUTES)
@@ -76,7 +67,6 @@ def clean(df: DataFrame) -> DataFrame:
         F.col("DepDelay").isNull() |
         F.col("DepDelay").between(DELAY_MIN_MINUTES, DELAY_MAX_MINUTES)
     )
-
     print(f"  Removed {before - df.count():,} invalid rows")
     return df
 
@@ -94,7 +84,7 @@ def engineer_features(df: DataFrame) -> DataFrame:
         )
         .withColumn("IsWeekend", F.when(F.col("DayOfWeek").isin(6, 7), 1).otherwise(0).cast(IntegerType()))
         .withColumn("DepHour",   (F.col("CRSDepTime") / 100).cast(IntegerType()))
-        .withColumn("IsDelayed", F.col("ArrDel15").cast(IntegerType()))
+        .withColumn("IsDelayed", F.coalesce(F.col("ArrDel15"), F.lit(0)).cast(IntegerType()))
     )
 
 

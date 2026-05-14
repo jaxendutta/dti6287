@@ -6,17 +6,13 @@ USAGE:
     uv run python scripts/download_data.py
 """
 
-import sys
 import zipfile
 import urllib.request
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from config import DOWNLOAD_URL, DOWNLOAD_ZIP, RAW_CSV, DATA_DIR
+from bi.config import DOWNLOAD_URL, DOWNLOAD_ZIP, RAW_CSV, DATA_DIR
 
 
 def download() -> None:
-    print(f"> Downloading dataset...")
+    print(f"Downloading dataset...")
     print(f"  From : {DOWNLOAD_URL}")
     print(f"  To   : {DOWNLOAD_ZIP}\n")
 
@@ -37,7 +33,7 @@ def download() -> None:
 
 
 def extract() -> None:
-    print(f"\n> Extracting to {DATA_DIR}...")
+    print(f"\nExtracting to {DATA_DIR}...")
     with zipfile.ZipFile(DOWNLOAD_ZIP, "r") as z:
         z.extractall(DATA_DIR)
     DOWNLOAD_ZIP.unlink()
@@ -46,16 +42,16 @@ def extract() -> None:
 
 def main() -> None:
     if RAW_CSV.exists():
-        print(f"> Already exists: {RAW_CSV.name} ({RAW_CSV.stat().st_size // 1024 // 1024} MB)")
+        print(f"Already exists: {RAW_CSV.name} ({RAW_CSV.stat().st_size // 1024 // 1024} MB)")
         return
 
     download()
     extract()
 
     if RAW_CSV.exists():
-        print(f"\n> Ready: {RAW_CSV.name} ({RAW_CSV.stat().st_size // 1024 // 1024} MB)")
+        print(f"\nReady: {RAW_CSV.name} ({RAW_CSV.stat().st_size // 1024 // 1024} MB)")
     else:
-        print(f"\n> Extracted files in {DATA_DIR}:")
+        print(f"\nExtracted files in {DATA_DIR}:")
         for f in DATA_DIR.iterdir():
             print(f"  {f.name}")
 
