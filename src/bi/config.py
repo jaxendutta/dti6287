@@ -6,6 +6,7 @@ Machine-specific overrides go in .env (see .env.example).
 """
 
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -32,12 +33,14 @@ CLEANED_PARQUET     = OUTPUT_DIR / "airline_cleaned.parquet"
 SPARK_PARQUET       = OUTPUT_DIR / "airline_cleaned_spark"
 
 # BTS data contains Latin-1 encoded characters in some city/airport name fields
-CSV_ENCODING = "latin-1"
+CSV_ENCODING     = "latin-1"    # used by pandas
+SPARK_CSV_ENCODING = "iso-8859-1"  # same encoding, Spark's name for it
 
 # ── Spark ─────────────────────────────────────────────────────────────────────
 SPARK_APP_NAME           = "AirlineOnTime-Analytics"
 SPARK_DRIVER_MEMORY      = os.getenv("SPARK_DRIVER_MEMORY", "4g")
 SPARK_SHUFFLE_PARTITIONS = int(os.getenv("SPARK_SHUFFLE_PARTITIONS", "8"))
+SPARK_PYTHON = sys.executable  # use the exact Python running this script
 
 # ── Column groups ─────────────────────────────────────────────────────────────
 DROP_COLS = [

@@ -7,10 +7,12 @@ USAGE:
     uv run python scripts/spark_pipeline.py
 """
 
+import os
+
 from bi.config import (
-    RAW_CSV, SPARK_PARQUET, OUTPUT_DIR, CSV_ENCODING,
+    RAW_CSV, SPARK_PARQUET, OUTPUT_DIR, SPARK_CSV_ENCODING,
     SPARK_APP_NAME, SPARK_DRIVER_MEMORY, SPARK_SHUFFLE_PARTITIONS,
-    DROP_COLS, CORE_COLS, INT_COLS, DOUBLE_COLS,
+    SPARK_PYTHON, DROP_COLS, CORE_COLS, INT_COLS, DOUBLE_COLS,
     DELAY_MIN_MINUTES, DELAY_MAX_MINUTES,
 )
 
@@ -20,6 +22,8 @@ from pyspark.sql.types import IntegerType, DoubleType
 
 
 def build_spark() -> SparkSession:
+    os.environ["PYSPARK_PYTHON"]        = SPARK_PYTHON
+    os.environ["PYSPARK_DRIVER_PYTHON"] = SPARK_PYTHON
     return (
         SparkSession.builder
         .appName(SPARK_APP_NAME)
@@ -30,16 +34,16 @@ def build_spark() -> SparkSession:
 
 
 def load(spark: SparkSession) -> DataFrame:
-    print(f"Loading: {RAW_CSV}")
+    print(f"> Loading: {RAW_CSV}")
     df = (
         spark.read
         .option("header", "true")
         .option("inferSchema", "false")
         .option("nullValue", "")
-        .option("encoding", CSV_ENCODING)
+        .option("encoding", SPARK_CSV_ENCODING)
         .csv(str(RAW_CSV))
     )
-    print(f"  Raw shape: {df.count():,} rows × {len(df.columns)} columns")
+    print(f"  > Raw shape: {df.count():,} rows × {len(df.columns)} columns")
     return df
 
 
@@ -48,9 +52,10 @@ def drop_columns(df: DataFrame) -> DataFrame:
 
 
 def cast_types(df: DataFrame) -> DataFrame:
+    # INT_COLS: values like "0.00" need float intermediary before int
     for col in INT_COLS:
         if col in df.columns:
-            df = df.withColumn(col, F.col(col).cast(IntegerType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()).cast(IntegerType()))
     for col in DOUBLE_COLS:
         if col in df.columns:
             df = df.withColumn(col, F.col(col).cast(DoubleType()))
@@ -67,7 +72,7 @@ def clean(df: DataFrame) -> DataFrame:
         F.col("DepDelay").isNull() |
         F.col("DepDelay").between(DELAY_MIN_MINUTES, DELAY_MAX_MINUTES)
     )
-    print(f"  Removed {before - df.count():,} invalid rows")
+    print(f"  > Removed {before - df.count():,} invalid rows")
     return df
 
 
@@ -90,16 +95,20 @@ def engineer_features(df: DataFrame) -> DataFrame:
 
 def write_summary(df: DataFrame) -> None:
     total = df.count()
-    rows = [
-        (col, total - df.filter(F.col(col).isNull()).count(),
-               df.filter(F.col(col).isNull()).count())
-        for col in df.columns
+    null_exprs = [
+        F.sum(F.when(F.col(c).isNull(), 1).otherwise(0)).alias(c)
+        for c in df.columns
     ]
-    stats = df.sparkSession.createDataFrame(rows, ["column", "valid", "missing"])
-    stats = stats.withColumn("missing_pct", F.round(F.col("missing") / total * 100, 2))
+    null_counts = df.select(null_exprs).collect()[0]
+
+    rows = [
+        (c, total - null_counts[c], null_counts[c], round(null_counts[c] / total * 100, 2))
+        for c in df.columns
+    ]
+    stats = df.sparkSession.createDataFrame(rows, ["column", "valid", "missing", "missing_pct"])
     out = str(OUTPUT_DIR / "summary_stats")
     stats.coalesce(1).write.mode("overwrite").option("header", "true").csv(out)
-    print(f"  Summary stats → {out}")
+    print(f"  > Summary stats -> {out}")
 
 
 def main() -> None:
@@ -112,12 +121,12 @@ def main() -> None:
     df = clean(df)
     df = engineer_features(df)
 
-    print(f"  Final shape: {df.count():,} rows × {len(df.columns)} columns")
+    print(f"  > Final shape: {df.count():,} rows × {len(df.columns)} columns")
 
     write_summary(df)
 
     df.write.mode("overwrite").partitionBy("Year").parquet(str(SPARK_PARQUET))
-    print(f"  Parquet saved → {SPARK_PARQUET}")
+    print(f"  > Parquet saved -> {SPARK_PARQUET}")
 
     spark.stop()
 
