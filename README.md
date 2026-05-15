@@ -50,7 +50,7 @@ The dataset is ~850 MB. Choose one of the following options.
 
 #### 1.3. Hadoop `winutils` Setup (Windows Only)
 
-Required for Spark to write to the local filesystem on Windows. Run the following command to download and set up `winutils`:
+Required for Spark to write to the local filesystem on Windows. The repository mirror used here publishes `hadoop-3.3.6` Windows binaries, so the helper downloads that release. Run the following command to download and set up `winutils`:
 
 ```bash
 uv run python scripts/setup_winutils.py

@@ -41,6 +41,8 @@ SPARK_APP_NAME           = "AirlineOnTime-Analytics"
 SPARK_DRIVER_MEMORY      = os.getenv("SPARK_DRIVER_MEMORY", "4g")
 SPARK_SHUFFLE_PARTITIONS = int(os.getenv("SPARK_SHUFFLE_PARTITIONS", "8"))
 SPARK_PYTHON = sys.executable  # use the exact Python running this script
+HADOOP_HOME = Path(os.getenv("HADOOP_HOME", "C:/hadoop"))
+HADOOP_BIN = HADOOP_HOME / "bin"
 
 # ── Column groups ─────────────────────────────────────────────────────────────
 DROP_COLS = [

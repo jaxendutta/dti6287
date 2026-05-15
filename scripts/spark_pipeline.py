@@ -8,13 +8,19 @@ USAGE:
 """
 
 import os
+import pandas as pd
 
 from bi.config import (
     RAW_CSV, SPARK_PARQUET, OUTPUT_DIR, SPARK_CSV_ENCODING,
     SPARK_APP_NAME, SPARK_DRIVER_MEMORY, SPARK_SHUFFLE_PARTITIONS,
-    SPARK_PYTHON, DROP_COLS, CORE_COLS, INT_COLS, DOUBLE_COLS,
+    SPARK_PYTHON, HADOOP_HOME, HADOOP_BIN, DROP_COLS, CORE_COLS, INT_COLS, DOUBLE_COLS,
     DELAY_MIN_MINUTES, DELAY_MAX_MINUTES,
 )
+
+os.environ["PYSPARK_PYTHON"] = SPARK_PYTHON
+os.environ["PYSPARK_DRIVER_PYTHON"] = SPARK_PYTHON
+os.environ["HADOOP_HOME"] = str(HADOOP_HOME)
+os.environ["PATH"] = os.pathsep.join([str(HADOOP_BIN), os.environ.get("PATH", "")])
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
@@ -22,11 +28,12 @@ from pyspark.sql.types import IntegerType, DoubleType
 
 
 def build_spark() -> SparkSession:
-    os.environ["PYSPARK_PYTHON"]        = SPARK_PYTHON
-    os.environ["PYSPARK_DRIVER_PYTHON"] = SPARK_PYTHON
     return (
         SparkSession.builder
         .appName(SPARK_APP_NAME)
+        .config("spark.pyspark.python", SPARK_PYTHON)
+        .config("spark.pyspark.driver.python", SPARK_PYTHON)
+        .config("spark.executorEnv.PYSPARK_PYTHON", SPARK_PYTHON)
         .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
         .config("spark.sql.shuffle.partitions", SPARK_SHUFFLE_PARTITIONS)
         .getOrCreate()
@@ -105,9 +112,8 @@ def write_summary(df: DataFrame) -> None:
         (c, total - null_counts[c], null_counts[c], round(null_counts[c] / total * 100, 2))
         for c in df.columns
     ]
-    stats = df.sparkSession.createDataFrame(rows, ["column", "valid", "missing", "missing_pct"])
-    out = str(OUTPUT_DIR / "summary_stats")
-    stats.coalesce(1).write.mode("overwrite").option("header", "true").csv(out)
+    out = OUTPUT_DIR / "summary_stats.csv"
+    pd.DataFrame(rows, columns=["column", "valid", "missing", "missing_pct"]).to_csv(out, index=False)
     print(f"  > Summary stats -> {out}")
 
 
