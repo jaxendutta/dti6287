@@ -57,16 +57,16 @@ uv run python scripts/setup_winutils.py
 
 #### 2.1. Python-based Execution (Non-Spark)
 
-Run the following command to execute the Python-based data processing and exploration notebook:
+Go through the cells of the following notebook to execute the Python-based data processing and exploration notebook:
 
-```bash
-uv run jupyter notebook notebooks/01_eda.ipynb
+```plain
+notebooks/01_eda.ipynb
 ```
 
 #### 2.2. Spark-based Execution
 
-Run the following command to execute the Spark-based data processing and exploration script:
+Go through the cells of the following notebook to execute the Spark-based data processing and exploration script:
 
-```bash
-uv run python scripts/spark_pipeline.py
+```plain
+notebooks/02_spark_pipeline.ipynb
 ```
