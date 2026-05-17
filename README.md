@@ -33,11 +33,8 @@ Analysis of U.S. domestic flight delays from 1987 to 2020. Dataset is a 2 millio
 Requires Python 3.13+, [uv](https://docs.astral.sh/uv/), and [Java 21](https://www.oracle.com/ca-en/java/technologies/downloads/#jdk21-windows).
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 uv sync
-
-# 2. Copy environment template
-cp .env.example .env
 ```
 
 #### 1.2. Dataset Download
