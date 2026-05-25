@@ -64,7 +64,7 @@ Based on your environment and preference, choose one of the following options to
 
 Zero-shot semantic labeling of carrier delay-risk profiles using [`MoritzLaurer/deberta-v3-large-zeroshot-v2.0`](https://huggingface.co/MoritzLaurer/deberta-v3-large-zeroshot-v2.0) ([Laurer et al., 2024](https://arxiv.org/abs/2312.17543)), the current state-of-the-art open-source NLI classifier, benchmarked across 28 tasks against the widely commercially adopted 2019 model [`facebook/bart-large-mnli`](https://huggingface.co/facebook/bart-large-mnli) baseline.
 
-Each carrier's delay-cause statistics (2003–2020) are serialized to natural language and classified across three label set iterations (binary → cause-focused → business framing) to document prompt sensitivity and justify the final choice.
+Each carrier's delay-cause statistics (2003–2020) are serialized to natural language and classified across four label set iterations (binary → cause-focused → business framing → anchor-based) to document prompt sensitivity and justify the final choice.
 
 Labels are attached back to the full dataset as `delay_risk_label` and carried forward as a feature in Assessment 3.
 
@@ -81,5 +81,9 @@ Open `notebooks/02_llm_labeling.ipynb` and execute the cells sequentially to per
 
 ### Outputs
 
-- `output/llm_labels/`
+- `output/llm_labels/labels_v1_binary.csv`
+- `output/llm_labels/labels_v2_cause_focused.csv`
+- `output/llm_labels/labels_v3_business_framing.csv`
+- `output/llm_labels/labels_v4_anchor_based.csv`
+- `output/llm_labels/hypothesis_per_carrier.png`
 - `output/airline_labeled.parquet`
