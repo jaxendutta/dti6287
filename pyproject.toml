@@ -3,7 +3,7 @@ name = "bi"
 version = "0.1.0"
 description = "DTI6287: Business Intelligence Technologies & Big Data Analytics"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10, <3.13"
 dependencies = [
     "pyspark>=3.5.0",
     "pandas>=2.2.0",
@@ -21,6 +21,7 @@ dependencies = [
     "torch>=2.12.0",
     "sentencepiece>=0.2.1",
     "protobuf>=7.35.0",
+    "xgboost>=3.2.0",
 ]
 
 [dependency-groups]
